@@ -137,28 +137,7 @@
             font-size: 1rem;
         }
         
-        .user-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            padding: 20px;
-            background: rgba(255,255,255,0.1);
-            margin-top: 20px;
-            border-radius: 10px;
-        }
         
-        .stat-item {
-            text-align: center;
-        }
-        
-        .stat-item h4 {
-            font-size: 1.5rem;
-        }
-        
-        .stat-item p {
-            font-size: 0.85rem;
-            opacity: 0.9;
-        }
         
         .detail-row {
             display: flex;
@@ -255,17 +234,6 @@
                     <div class="user-avatar-large">{{ user.full_name|make_list|first|upper|default:"U" }}</div>
                     <h2 class="user-name">{{ user.full_name|default:"User Name" }}</h2>
                     <p class="user-email">{{ user.email|default:"user@example.com" }}</p>
-                    
-                    <div class="user-stats">
-                        <div class="stat-item">
-                            <h4>{{ books_currently|default:"0" }}</h4>
-                            <p>Currently Borrowed</p>
-                        </div>
-                        <div class="stat-item">
-                            <h4>{{ books_total|default:"0" }}</h4>
-                            <p>Total Borrowed</p>
-                        </div>
-                    </div>
                 </div>
             </div>
             
@@ -317,21 +285,19 @@
                     <tbody>
                         {% for record in borrowed_books %}
                         <tr>
-                            <td>{{ record.book }}</td>
-                            <td>{{ record.borrowed_date }}</td>
+                            <td>{{ record.book.book_name }}</td>
+                            <td>{{ record.issue_date }}</td>
                             <td>{{ record.due_date }}</td>
                             <td>
-                                {% if record.status == 'overdue' %}
-                                <span class="badge badge-danger">Overdue</span>
-                                {% elif record.status == 'borrowed' %}
-                                <span class="badge badge-warning">Borrowed</span>
+                                {% if record.status == 'issued' %}
+                                <span class="badge badge-warning">Issued</span>
                                 {% else %}
                                 <span class="badge badge-success">Returned</span>
                                 {% endif %}
                             </td>
                             <td>
-                                {% if record.status != 'returned' %}
-                                <a href="/return/{{ record.id }}/" class="btn btn-primary" style="padding: 5px 12px; font-size: 0.8rem;">Return</a>
+                                {% if record.status == 'issued' %}
+                                <a href="{% url 'return_book' record.id %}" class="btn btn-primary" style="padding: 5px 12px; font-size: 0.8rem;">Return</a>
                                 {% else %}
                                 -
                                 {% endif %}
