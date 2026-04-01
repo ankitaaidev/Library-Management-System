@@ -271,29 +271,42 @@
         <div class="dashboard-grid">
             <div class="card">
                 <div class="card-header">
-                    <h2>Recent Activities</h2>
+                    <div>
+                        <h2>Recent Activities</h2>
+                        <p style="font-size: 0.8rem; color: #999; margin-top: 4px;">Recent 5 activities are shown here</p>
+                    </div>
                 </div>
                 <div class="card-body">
                     <table class="recent-table">
                         <thead>
                             <tr>
-                                <th>User</th>
-                                <th>Book</th>
-                                <th>Action</th>
-                                <th>Status</th>
+                                <th>USER</th>
+                                <th>BOOK</th>
+                                <th>ISSUE DATE</th>
+                                <th>DUE DATE</th>
+                                <th>STATUS</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for record in recent_records %}
                             <tr>
-                                <td>{{ record.user }}</td>
-                                <td>{{ record.book }}</td>
-                                <td>{{ record.action }}</td>
-                                <td><span class="status-badge {{ record.status_class }}">{{ record.status }}</span></td>
+                                <td>{{ record.user.full_name }}</td>
+                                <td>{{ record.book.book_name }}</td>
+                                <td>{{ record.issue_date|date:"F j, Y" }}</td>
+                                <td>{{ record.due_date|date:"F j, Y" }}</td>
+                                <td>
+                                    {% if record.status == 'issued' and record.current_fine > 0 %}
+                                    <span class="status-badge overdue">Overdue</span>
+                                    {% elif record.status == 'issued' %}
+                                    <span class="status-badge borrowed">Issued</span>
+                                    {% else %}
+                                    <span class="status-badge active">Returned</span>
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="4" style="text-align: center; color: #7f8c8d;">No recent activities</td>
+                                <td colspan="5" style="text-align: center; color: #7f8c8d; padding: 30px;">No recent activities</td>
                             </tr>
                             {% endfor %}
                         </tbody>

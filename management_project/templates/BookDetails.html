@@ -344,11 +344,9 @@
                         <span class="detail-value">
                             <div class="stock-indicator">
                                 <span>{{ book.available|default:"0" }}</span>
-                                
+
                                 <div class="stock-bar">
-                                    <div
-                                        class="stock-fill {% if book.available == 1 %}out{% elif book.available < book.stock %}low{% endif %}"
-                                        style="width: {% if book.available == 0 %}100%{% elif book.stock > 0 %}{% widthratio book.available book.stock 100 %}%{% else %}0%{% endif %}">
+                                    <div class="stock-fill {% if book.available == 0 %}out{% elif book.available < book.stock %}low{% endif %}"style="width: {{ stock_percent }}%">
                                     </div>
                                 </div>
                             </div>
@@ -360,29 +358,43 @@
 
         <div class="card" style="margin-top: 20px;">
             <div class="card-header">
-                <h2>Borrowing History</h2>
+                <div>
+                    <h2>Borrowing History</h2>
+                    <p style="font-size: 0.8rem; color: #999; margin-top: 4px;">Recent 5 borrowings are shown here</p>
+                </div>
+                <span style="font-size: 0.85rem; color: #999;">{{ currently_issued }} currently issued · {{ total_borrowed }} total</span>
             </div>
             <div class="card-body">
                 <table class="history-table">
                     <thead>
                         <tr>
-                            <th>User</th>
-                            <th>Borrowed Date</th>
-                            <th>Return Date</th>
-                            <th>Status</th>
+                            <th>USER</th>
+                            <th>ISSUE DATE</th>
+                            <th>DUE DATE</th>
+                            <th>RETURN DATE</th>
+                            <th>STATUS</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for record in book_history %}
                         <tr>
-                            <td>{{ record.user }}</td>
-                            <td>{{ record.borrowed_date }}</td>
-                            <td>{{ record.return_date|default:"-" }}</td>
-                            <td><span class="status-badge {{ record.status_class }}">{{ record.status }}</span></td>
+                            <td>{{ record.user.full_name }}</td>
+                            <td>{{ record.issue_date|date:"F j, Y" }}</td>
+                            <td>{{ record.due_date|date:"F j, Y" }}</td>
+                            <td>{{ record.return_date|date:"F j, Y"|default:"-" }}</td>
+                            <td>
+                                {% if record.status == 'issued' and record.current_fine > 0 %}
+                                <span class="status-badge inactive">Overdue</span>
+                                {% elif record.status == 'issued' %}
+                                <span class="status-badge deactivated">Issued</span>
+                                {% else %}
+                                <span class="status-badge active">Returned</span>
+                                {% endif %}
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" style="text-align: center; color: #7f8c8d; padding: 30px;">
+                            <td colspan="5" style="text-align: center; color: #7f8c8d; padding: 30px;">
                                 No borrowing history available
                             </td>
                         </tr>
