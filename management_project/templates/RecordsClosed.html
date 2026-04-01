@@ -76,6 +76,15 @@
             color: #1a1a1a;
         }
 
+        .btn-danger {
+            background: #d32f2f;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #b71c1c;
+        }
+
         .tabs {
             display: flex;
             gap: 8px;
@@ -371,6 +380,8 @@
                 <h1>Closed Records</h1>
                 <p>History of all returned books</p>
             </div>
+            <a href="{% url 'clear_closed_records' %}" class="btn btn-danger"
+                onclick="return confirm('Are you sure you want to delete ALL closed records? This action cannot be undone.')">Clear All</a>
         </div>
 
         <div class="tabs">

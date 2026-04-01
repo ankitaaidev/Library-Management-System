@@ -294,6 +294,14 @@
             <span>{{ user.full_name|default:"User Details" }}</span>
         </div>
 
+        {% if messages %}
+        {% for message in messages %}
+        <div style="padding: 12px 20px; margin-bottom: 20px; border-radius: 8px; font-size: 0.9rem; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
         <div class="page-header">
             <h1>User Details</h1>
             <div class="header-actions">

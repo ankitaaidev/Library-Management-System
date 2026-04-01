@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.db.models import Q  
 from django.utils import timezone
+from django.contrib import messages
 from datetime import timedelta
 from .form import *
 from .models import *
@@ -81,7 +82,10 @@ def book_edit(request, book_id):
 
 def book_delete(request, book_id):
     book = bookData.objects.get(id=book_id)
-    book.delete()   # delete from database
+    if issueBookData.objects.filter(book=book, status='issued').exists():
+        messages.error(request, f'"{book.book_name}" cannot be deleted because it is currently issued to a user.')
+        return redirect('book_details', book_id=book.id)
+    book.delete()
     return redirect("book_table")
 
 #i_contains used for case-insensitive search
@@ -137,10 +141,10 @@ def user_edit(request, user_id):
 
 def user_delete(request, user_id):
     user = userData.objects.get(id=user_id)
-    # if issueBookData.objects.filter(user=user, status='issued').exists():
-    #     # Check if the user has any issued books
-    #     return render(request, 'UserDeleteError.html', {"user": user})
-    user.delete()   # delete from database
+    if issueBookData.objects.filter(user=user, status='issued').exists():
+        messages.error(request, f'"{user.full_name}" cannot be deleted because they have an active book borrowing.')
+        return redirect('user_details', user_id=user.id)
+    user.delete()
     return redirect("user_table")
 
 
@@ -210,6 +214,11 @@ def records_closed(request):
     )
 
 
+def clear_closed_records(request):
+    issueBookData.objects.filter(status='returned').delete()
+    return redirect('records_closed')
+
+
 def records_borrow(request):
     user = userData.objects.exclude(issuebookdata__status='issued') # __ is used to access related fields in Django ORM.
     book = bookData.objects.filter(available__gt=0) # available__gt=0 means available greater than 0
@@ -232,7 +241,7 @@ def return_book(request, record_id):
     # get_object_or_404 will raise 404 if id is not found.
     if record.status == 'issued':
         record.status = 'returned'
-        record.return_date = timezone.now()
+        record.return_date = timezone.localtime()
         # Calculate fine if returned after due date
         overdue_days = (record.return_date.date() - record.due_date).days
         if overdue_days > 0:
@@ -250,7 +259,7 @@ def return_book(request, record_id):
 def reissue_book(request, record_id):
     record = get_object_or_404(issueBookData, id=record_id)
     if record.status == 'issued':
-        today = timezone.now().date()
+        today = timezone.localdate()
         record.issue_date = today
         record.due_date = today + timedelta(days=14)
         record.save(update_fields=['issue_date', 'due_date'])
