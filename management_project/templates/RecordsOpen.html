@@ -440,7 +440,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for record in records[::-1] %}
+                    {% for record in records %}
                     <tr>
                         <td>{{ record.user.full_name }}</td>
                         <td>{{ record.book.book_name }}</td>

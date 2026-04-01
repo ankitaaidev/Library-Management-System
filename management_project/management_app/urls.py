@@ -19,4 +19,5 @@ urlpatterns = [
     path('records/open/', views.records_open, name='records_open'),
     path('records/closed/', views.records_closed, name='records_closed'),
     path('records/borrow/', views.records_borrow, name='records_borrow'),
+    path('return/<int:record_id>/', views.return_book, name='return_book'),
 ]

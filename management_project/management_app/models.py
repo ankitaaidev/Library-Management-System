@@ -16,6 +16,10 @@ BOOK_TYPE = [
     ('Literature', 'Literature'),
     ('Other','Other')]
 
+
+def default_due_date():
+    return date.today() + timedelta(days=14)
+
 class userData(models.Model):
     full_name = models.CharField(max_length=150)
     phone_no = models.CharField(max_length=15)
@@ -38,7 +42,7 @@ class issueBookData(models.Model):
     user = models.ForeignKey(userData, on_delete=models.CASCADE)
     book = models.ForeignKey(bookData, on_delete=models.CASCADE)
     issue_date = models.DateField(auto_now_add= True)
-    due_date = models.DateField(default=date.today() + timedelta(days=14), blank=True, null=True)
-    return_date = models.DateField(blank=True, null=True)
+    due_date = models.DateField(default=default_due_date)   # 14 days from issue_date
+    return_date = models.DateTimeField(blank=True, null=True)
     fine_amount = models.FloatField(default=0.00)
     status = models.CharField(max_length=20, choices=ISSUE_STATUS, default='issued')
