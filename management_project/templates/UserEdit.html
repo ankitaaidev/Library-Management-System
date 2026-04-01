@@ -166,13 +166,14 @@
         }
         
         .btn-secondary {
-            background: #ecf0f1;
-            color: #7f8c8d;
+            background: #f0f0f0;
+            color: #666;
+            border: 1px solid #e8e8e8;
         }
         
         .btn-secondary:hover {
-            background: #bdc3c7;
-            color: #2c3e50;
+            background: #e8e8e8;
+            color: #1a1a1a;
         }
         
         .btn-danger {
@@ -220,7 +221,7 @@
         </div>
         
         <div class="page-header">
-            <h1>✏️ Edit User</h1>
+            <h1>Edit User</h1>
             <p>Update the user information below.</p>
         </div>
         
@@ -229,7 +230,7 @@
                 <h2>Editing: {{ user.full_name|default:"User" }}</h2>
             </div>
             <div class="card-body">
-                <form method="POST">
+                <form method="POST" novalidate>
                     {% csrf_token %}
                     
                     <div class="form-group">
@@ -267,9 +268,9 @@
                     </div>
                     
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-warning">💾 Save Changes</button>
-                        <a href="{% url 'user_details' user.id %}" class="btn btn-secondary">Cancel</a>
-                        <a href="{% url 'user_delete' user.id %}" class="btn btn-danger">🗑️ Delete User</a>
+                        <button type="submit" class="btn btn-warning">Save Changes</button>
+                        <a href="{% url 'user_table' %}" class="btn btn-secondary">Cancel</a>
+                        <a href="{% url 'user_delete' user.id %}" class="btn btn-danger">Delete User</a>
                     </div>
                 </form>
             </div>

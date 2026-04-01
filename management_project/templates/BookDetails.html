@@ -298,17 +298,17 @@
             <h1>Book Details</h1>
             <p>Reference Information</p>
             <div class="header-actions">
-                <a href="{% url 'book_edit' book.id %}" class="btn btn-warning"><span>✏️</span> Edit</a>
-                <a href="{% url 'book_delete' book.id %}" class="btn btn-danger"><span>🗑️</span> Delete</a>
+                <a href="{% url 'book_edit' book.id %}" class="btn btn-warning">Edit</a>
+                <a href="{% url 'book_delete' book.id %}" class="btn btn-danger">Delete</a>
             </div>
         </div>
 
         <div class="details-grid">
             <div class="card">
                 <div class="book-cover">
-                    <div class="book-icon">�</div>
+                    <div class="book-icon">{{ book.book_name|make_list|first|upper|default:"?" }}</div>
                     <h2 class="book-title">{{ book.book_name|default:"Book Title" }}</h2>
-                    <p class="book-author">by {{ book.author|default:"Author Name" }}</p>
+                    <p class="book-author">by {{ book.author_name|default:"Author Name" }}</p>
                 </div>
             </div>
 
