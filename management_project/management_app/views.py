@@ -11,12 +11,15 @@ def dashboard(request):
     total_books = bookData.objects.count()
     borrowed_books = issueBookData.objects.filter(status='issued').count()
     returned_books = issueBookData.objects.filter(status='returned').count()
-    #TODO: which table to use for "recent-table"
+    recent_records = issueBookData.objects.select_related('user', 'book').order_by('-issue_date', '-id')[:5]
 
-    return render(request, 'Dashboard.html',{
-        'total_users': total_users,   
-        'total_books': total_books, 'borrowed_books': borrowed_books, 'returned_books': returned_books
-        })
+    return render(request, 'Dashboard.html', {
+        'total_users': total_users,
+        'total_books': total_books,
+        'borrowed_books': borrowed_books,
+        'returned_books': returned_books,
+        'recent_records': recent_records,
+    })
     
 
 def book_table(request):
@@ -38,7 +41,17 @@ def book_add(request):
 
 def book_details(request, book_id):
     book = bookData.objects.get(id=book_id)
-    return render(request, 'BookDetails.html', {'book': book})
+    book_history = issueBookData.objects.filter(book=book).select_related('user').order_by('-issue_date', '-id')
+    currently_issued = book_history.filter(status='issued').count()
+    total_borrowed = book_history.count()
+    stock_percent = int((book.available / book.stock) * 100) if book.stock > 0 else 0
+    return render(request, 'BookDetails.html', {
+        'book': book,
+        'book_history': book_history[:5],
+        'currently_issued': currently_issued,
+        'total_borrowed': total_borrowed,
+        'stock_percent': stock_percent,
+    })
 
 
 def book_edit(request, book_id):
@@ -83,8 +96,16 @@ def user_add(request):
 
 
 def user_details(request, user_id):
-    user=userData.objects.get(id=user_id)
-    return render(request, 'UserDetails.html', {"user": user})
+    user = userData.objects.get(id=user_id)
+    borrowed_books = issueBookData.objects.filter(user=user).select_related('book').order_by('-issue_date', '-id')
+    books_currently = borrowed_books.filter(status='issued').count()
+    books_total = borrowed_books.count()
+    return render(request, 'UserDetails.html', {
+        "user": user,
+        "borrowed_books": borrowed_books[:5],
+        "books_currently": books_currently,
+        "books_total": books_total,
+    })
 
 
 def user_edit(request, user_id):
@@ -204,6 +225,9 @@ def return_book(request, record_id):
         record.book.save(update_fields=['available'])   
         record.save(update_fields=['status', 'return_date', 'fine_amount'])
     # update_fields-> only change these in database
+    next_url = request.GET.get('next')
+    if next_url:
+        return redirect(next_url)
     return redirect('records_open')
 
 
@@ -214,4 +238,7 @@ def reissue_book(request, record_id):
         record.issue_date = today
         record.due_date = today + timedelta(days=14)
         record.save(update_fields=['issue_date', 'due_date'])
+    next_url = request.GET.get('next')
+    if next_url:
+        return redirect(next_url)
     return redirect('records_open')
