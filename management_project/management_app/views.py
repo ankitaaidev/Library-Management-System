@@ -1,5 +1,6 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.db.models import Q  
+from django.utils import timezone
 from .form import *
 from .models import *
 # Q allows building complex queries using logical operators like AND, OR, NOT, etc. It is used to filter data based on multiple conditions.
@@ -19,7 +20,7 @@ def dashboard(request):
 
 def book_table(request):
     # TODO: search and filter functionality
-    books = bookData.objects.all()
+    books = bookData.objects.all().order_by('-id')
     return render(request, 'BookTable.html', {'books': books})
 
 
@@ -60,7 +61,7 @@ def book_delete(request, book_id):
 def user_table(request):
     name_search = request.GET.get("name")
     email_search = request.GET.get("email")
-    users = userData.objects.all()
+    users = userData.objects.all().order_by('-id')
     if name_search or email_search:
         users = users.filter(
             Q(full_name__icontains=name_search) | Q(email__icontains=email_search)
@@ -99,6 +100,9 @@ def user_edit(request, user_id):
 
 def user_delete(request, user_id):
     user = userData.objects.get(id=user_id)
+    # if issueBookData.objects.filter(user=user, status='issued').exists():
+    #     # Check if the user has any issued books
+    #     return render(request, 'UserDeleteError.html', {"user": user})
     user.delete()   # delete from database
     return redirect("user_table")
 
@@ -108,7 +112,7 @@ def records_open(request):
     date_from = request.GET.get("date_from", "").strip()
     date_to = request.GET.get("date_to", "").strip()
 
-    records = issueBookData.objects.filter(status='issued').select_related('user', 'book')
+    records = issueBookData.objects.filter(status='issued').select_related('user', 'book').order_by('-issue_date', '-id')
 
     if search_query:
         records = records.filter(
@@ -116,14 +120,23 @@ def records_open(request):
             | Q(user__email__icontains=search_query)
             | Q(book__book_name__icontains=search_query)
             | Q(book__author_name__icontains=search_query)
-        )
-        return render(request, 'RecordsOpen.html', {"records": records, "search_query": search_query})
+        )   # icontains is used for case-insensitive search
+    
     if date_from and date_to:
-        records = records.filter(Q(issue_date__gte=date_from) & Q(due_date__lte=date_to))
-        return render(request, 'RecordsOpen.html', {"records": records, "date_from": date_from, "date_to": date_to})
+        records = records.filter(
+            Q(issue_date__gte=date_from) # gte-> greater than or equal to
+            & Q(due_date__lte=date_to)  # lte-> less than or equal to
+        )
 
     return render(
-        request, 'RecordsOpen.html', {"records": records},
+        request,
+        'RecordsOpen.html', 
+        {
+            "records": records,
+            "search_query": search_query, 
+            "date_from": date_from, 
+            "date_to": date_to
+        },
     )
 
 
@@ -132,7 +145,7 @@ def records_closed(request):
     date_from = request.GET.get("date_from", "").strip()
     date_to = request.GET.get("date_to", "").strip()
 
-    records = issueBookData.objects.filter(status='returned').select_related('user', 'book')
+    records = issueBookData.objects.filter(status='returned').select_related('user', 'book').order_by('-return_date', '-id')
 
     if search_query:
         records = records.filter(
@@ -143,10 +156,10 @@ def records_closed(request):
         )
 
     if date_from:
-        records = records.filter(return_date__gte=date_from)
+        records = records.filter(return_date__date__gte=date_from)
 
     if date_to:
-        records = records.filter(return_date__lte=date_to)
+        records = records.filter(return_date__date__lte=date_to)
 
     return render(
         request,
@@ -161,8 +174,8 @@ def records_closed(request):
 
 
 def records_borrow(request):
-    user = userData.objects.exclude(issuebookdata__status='issued').distinct()
-    book = bookData.objects.filter(available__gt=0)
+    user = userData.objects.exclude(issuebookdata__status='issued') # __ is used to access related fields in Django ORM.
+    book = bookData.objects.filter(available__gt=0) # available__gt=0 means available greater than 0
     if request.method == 'POST':
         form = issueBookForm(request.POST)
         if form.is_valid():
@@ -172,3 +185,16 @@ def records_borrow(request):
             return render(request, 'RecordsBorrowBook.html', {"form": form, "users": user, "books": book})
     form = issueBookForm()
     return render(request, 'RecordsBorrowBook.html', {"form": form, "users": user, "books": book})
+
+
+def return_book(request, record_id):
+    record = get_object_or_404(issueBookData, id=record_id)
+    # get_object_or_404 will raise 404 if id is not found.
+    if record.status == 'issued':
+        record.status = 'returned'
+        record.return_date = timezone.now()
+        record.book.available += 1  
+        record.book.save(update_fields=['available'])   
+        record.save(update_fields=['status', 'return_date'])
+    # update_fields-> only change these in database
+    return redirect('records_open')

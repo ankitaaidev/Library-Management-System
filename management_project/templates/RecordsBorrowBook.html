@@ -328,7 +328,8 @@
 						<div class="form-row">
 							<div class="form-group">
 								<label for="due_date">Due Date</label>
-								<input type="date" id="due_date" name="due_date" class="form-control" value="{{ due_date|default:'' }}">
+								<input type="date" id="due_date" name="due_date" class="form-control" value="{{ form.due_date.value|default:'' }}" required>
+								<!--Made the due_date required-->
 							</div>
 						</div>
 

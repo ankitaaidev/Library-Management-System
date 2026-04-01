@@ -395,7 +395,6 @@
                         <th>Author Name</th>
                         <th>Issue Date</th>
                         <th>Return Date</th>
-                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -405,13 +404,10 @@
                         <td>{{ record.book.book_name }}</td>
                         <td>{{ record.book.author_name }}</td>
                         <td>{{ record.issue_date }}</td>
-                        <td>{{ record.return_date }}</td>
-                        <td>
-                            <div class="action-btns">
-                                <a href="/return/{{ record.id }}/" class="btn-return">Return</a>
-                                <a href="/extend/{{ record.id }}/" class="btn-extend">Extend</a>
-                            </div>
-                        </td>
+                        <td>{{ record.return_date|date:"d-M-Y" }}</td>
+                        <!-- |date is Django's template filter -->
+<!-- "d M Y" formats it as "01 Apr 2025" — time is hidden, full datetime still in DB -->
+
                     </tr>
                     {% empty %}
                     <tr>

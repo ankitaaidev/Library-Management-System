@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError 
 from .models import *
-import datetime
+from datetime import date, timedelta
 
 # cleaned_data is validated&cleaned data using is_valid()
 # if errors are found at any time, then they are stored in forms.errors
@@ -57,14 +57,14 @@ class bookDataForm(forms.ModelForm):
         book_name = self.cleaned_data.get('book_name')  
         if not book_name:
             raise ValidationError("Please enter Book Name")
-        # elif bookData.objects.filter(book_name=book_name).exclude(pk=self.instance.pk).exists():
-        #     raise ValidationError("Book with this name already exists") 
         return book_name
+    
     def clean_author_name(self):
         author_name= self.cleaned_data.get('author_name')
         if not author_name:
             raise ValidationError("Please enter Author Name")
         return author_name
+    
     def clean_book_type(self):
         book_type = self.cleaned_data.get('book_type')
         if not book_type:
@@ -81,6 +81,11 @@ class issueBookForm(forms.ModelForm):
     class Meta:
         model = issueBookData
         fields = ['user', 'book', 'due_date']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['due_date'].initial = date.today() + timedelta(days=14)
+        #.initial-> data is treated as inputed, but will be overwritten if bound with request.POST data.
 
     def clean_user(self):
         user = self.cleaned_data.get('user')
@@ -105,7 +110,6 @@ class issueBookForm(forms.ModelForm):
         return due_date 
     
     # def clean_author_name(self):
-        
     #     if not author:
     #         raise ValidationError("Please select Author")
     #     return author
