@@ -113,3 +113,4 @@ class issueBookForm(forms.ModelForm):
     #     if not author:
     #         raise ValidationError("Please select Author")
     #     return author
+    
